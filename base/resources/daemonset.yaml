@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gvisor-installer
+  namespace: kube-system
+  labels:
+    name: gvisor-installer
+spec:
+  selector:
+    matchLabels:
+      name: gvisor-installer
+  template:
+    metadata:
+      labels:
+        name: gvisor-installer
+    spec:
+      tolerations:
+      # this toleration is to have the daemonset runnable on master nodes
+      # remove it if your masters can't run pods
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: gvisor-installer
+        image: jamonation/gvisor-installer:latest
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: host
+          mountPath: /host
+          readOnly: false
+      volumes:
+      - name: host
+        hostPath:
+          path: /
